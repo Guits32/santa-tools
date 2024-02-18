@@ -1,0 +1,26 @@
+#!/bin/bash
+
+uid=$(id -u)
+current_hostname=$(hostname)
+
+if [[ $uid -ne 0 ]]; then
+    echo "fatal: script must be run as root user"
+    exit 1
+fi
+
+echo "current hostname: ${current_hostname}"
+
+is_hostname_ok="n"
+
+while [[ "${is_hostname_ok}" != "Y" ]]; do
+    read -p "new hostname: " new_hostname
+    echo "hostname will be: \"${new_hostname}\""
+    read -p "do you confirm[Y/n]: " is_hostname_ok
+done
+
+hostnamectl set-hostname "${new_hostname}"
+sed -i "s/${current_hostname}/${new_hostname}/g" /etc/hosts
+
+dhclient && dhclient -r
+
+reboot
